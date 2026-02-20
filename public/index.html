@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JODY — Fashion</title>
+    <title>JUDY — Fashion</title>
 
     <!-- ⚡ SPEED: preconnect to both Google font servers -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -426,11 +426,11 @@
 
 <div class="marquee-wrap">
     <div class="marquee-track">
-        <span class="marquee-item">JODY FASHION</span><span class="marquee-item"><span>✦</span></span>
+        <span class="marquee-item">JUDY FASHION</span><span class="marquee-item"><span>✦</span></span>
         <span class="marquee-item">NEW COLLECTION</span><span class="marquee-item"><span>✦</span></span>
         <span class="marquee-item">جودي للأزياء</span><span class="marquee-item"><span>✦</span></span>
         <span class="marquee-item">SUMMER 2026</span><span class="marquee-item"><span>✦</span></span>
-        <span class="marquee-item">JODY FASHION</span><span class="marquee-item"><span>✦</span></span>
+        <span class="marquee-item">JUDY FASHION</span><span class="marquee-item"><span>✦</span></span>
         <span class="marquee-item">NEW COLLECTION</span><span class="marquee-item"><span>✦</span></span>
         <span class="marquee-item">جودي للأزياء</span><span class="marquee-item"><span>✦</span></span>
         <span class="marquee-item">SUMMER 2026</span><span class="marquee-item"><span>✦</span></span>
@@ -447,7 +447,7 @@
 
 <footer>
     <div class="footer-logo" dir="ltr"><span>J</span>ODY</div>
-    <div class="footer-copy">© 2026 JODY Fashion — جميع الحقوق محفوظة</div>
+    <div class="footer-copy">© 2026 JUDY Fashion — جميع الحقوق محفوظة</div>
     <div class="footer-socials">
         <a href="#" class="social-link"><svg class="ic" style="width:20px;height:20px"><use href="#i-instagram"/></svg></a>
         <a href="#" class="social-link"><svg class="ic" style="width:20px;height:20px"><use href="#i-tiktok"/></svg></a>
@@ -476,12 +476,12 @@
     document.getElementById('welcome').addEventListener('animationend', function(){ this.remove(); });
 
     // ── Theme (run before paint to avoid flash) ──
-    const saved = localStorage.getItem('jody-theme');
+    const saved = localStorage.getItem('JUDY-theme');
     if(saved) document.documentElement.dataset.theme = saved;
     function toggleTheme(){
         const next = document.documentElement.dataset.theme==='dark'?'light':'dark';
         document.documentElement.dataset.theme = next;
-        localStorage.setItem('jody-theme', next);
+        localStorage.setItem('JUDY-theme', next);
     }
 
     // ── Cursor ──
@@ -530,7 +530,7 @@
     .catch(()=>{
         const cats=['فساتين','بلوزات','بنطلون','جيبات','جديد'];
         const names=['فستان صيفي','بلوزة فلورال','بنطلون كلاسيك','جيبة ميدي','فستان سهرة','بلوزة كريب'];
-        allProducts=Array.from({length:16},(_,i)=>({ id:i+1, name:names[i%6], image:`https://picsum.photos/seed/jody${i+10}/600/800`, category:cats[i%cats.length] }));
+        allProducts=Array.from({length:16},(_,i)=>({ id:i+1, name:names[i%6], image:`https://picsum.photos/seed/JUDY${i+10}/600/800`, category:cats[i%cats.length] }));
         filter('الكل',document.querySelector('.pill'));
     });
 
@@ -582,7 +582,7 @@
                     <img src="${p.image}" loading="lazy" decoding="async" alt="${p.category}">
                     <div class="card-overlay">
                         <span class="card-cat">${p.category}</span>
-                        <div class="card-title">${p.name||'JODY Exclusive'}</div>
+                        <div class="card-title">${p.name||'JUDY Exclusive'}</div>
                         <a class="wa-btn" href="${waHref}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
                             <svg class="ic"><use href="#i-whatsapp"/></svg> اطلب الآن
                         </a>
