@@ -48,8 +48,11 @@
             transition:background .45s,color .45s;
         }
 
-        /* ⚡ SPEED: GPU layer hint for animated elements */
-        .cursor,.cursor-ring,.marquee-track,.card img,.card { will-change:transform; }
+        /* ⚡ SPEED: GPU layer only for constantly animating elements */
+        .cursor,.cursor-ring,.marquee-track { will-change:transform; }
+        /* Cards: GPU layer on hover only — not permanently */
+        .card:hover img { will-change:transform; }
+        .card:not(:hover) img { will-change:auto; }
 
         /* Custom cursor */
         .cursor {
@@ -70,6 +73,8 @@
             content:''; position:fixed; inset:0;
             background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
             pointer-events:none; z-index:9990; opacity:.4;
+            /* ⚡ FIX: isolate this layer so it doesn't trigger repaints */
+            transform:translateZ(0); isolation:isolate;
         }
 
         /* ══ WELCOME ══ */
@@ -165,7 +170,7 @@
         /* ══ HEADER ══ */
         header { position:fixed; top:0; width:100%; z-index:1000; }
         .header-top {
-            background:var(--surface); backdrop-filter:blur(22px) saturate(180%); -webkit-backdrop-filter:blur(22px);
+            background:var(--surface); backdrop-filter:blur(16px) saturate(150%); -webkit-backdrop-filter:blur(16px) saturate(150%);
             border-bottom:1px solid var(--border); padding:18px 5%;
             display:flex; align-items:center; justify-content:space-between; transition:background .4s;
         }
@@ -200,7 +205,7 @@
 
         /* Nav */
         .nav-bar {
-            background:var(--surface2); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            background:var(--surface2); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
             border-bottom:1px solid var(--border); display:flex; justify-content:center; gap:6px;
             padding:12px 5%; overflow-x:auto; scrollbar-width:none; transition:background .4s;
         }
@@ -268,7 +273,7 @@
         .wa-btn:hover { transform:scale(1.05); box-shadow:0 4px 22px rgba(37,211,102,.45); }
         .card-zoom-btn {
             position:absolute; top:12px; right:12px; width:34px; height:34px;
-            background:rgba(0,0,0,.45); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.2); border-radius:50%;
+            background:rgba(0,0,0,.55); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,.2); border-radius:50%;
             display:flex; align-items:center; justify-content:center; color:#fff;
             opacity:0; transition:opacity .3s,transform .3s; transform:scale(.8);
         }
@@ -421,6 +426,8 @@
         <button class="pill" onclick="filter('بلوزات',this)">بلوزات</button>
         <button class="pill" onclick="filter('بنطلون',this)">بنطلونات</button>
         <button class="pill" onclick="filter('جيبات',this)">جيبات</button>
+        <button class="pill" onclick="filter('سوت',this)">سوت</button>
+        <button class="pill" onclick="filter('أخرى',this)">أخرى</button>
     </nav>
 </header>
 
@@ -524,12 +531,12 @@
 
     // ── Products ──
     let allProducts=[];
-    const titles={'الكل':'المجموعة الكاملة','جديد':'وصل حديثاً','فساتين':'الفساتين','بلوزات':'البلوزات','بنطلون':'البنطلونات','جيبات':'الجيبات'};
+    const titles={'الكل':'المجموعة الكاملة','جديد':'وصل حديثاً','فساتين':'الفساتين','بلوزات':'البلوزات','بنطلون':'البنطلونات','جيبات':'الجيبات','سوت':'السوتات','أخرى':'قطع أخرى'};
 
     fetch('/api/products').then(r=>r.json()).then(d=>{ allProducts=d; filter('الكل',document.querySelector('.pill')); })
     .catch(()=>{
-        const cats=['فساتين','بلوزات','بنطلون','جيبات','جديد'];
-        const names=['فستان صيفي','بلوزة فلورال','بنطلون كلاسيك','جيبة ميدي','فستان سهرة','بلوزة كريب'];
+        const cats=['فساتين','بلوزات','بنطلون','جيبات','جديد','سوت','أخرى'];
+        const names=['فستان صيفي','بلوزة فلورال','بنطلون كلاسيك','جيبة ميدي','فستان سهرة','بلوزة كريب','سوت كاجوال','قطعة مميزة'];
         allProducts=Array.from({length:16},(_,i)=>({ id:i+1, name:names[i%6], image:`https://picsum.photos/seed/JUDY${i+10}/600/800`, category:cats[i%cats.length] }));
         filter('الكل',document.querySelector('.pill'));
     });
@@ -548,55 +555,42 @@
 
     function renderCards(list){
         const box=document.getElementById('gallery');
-
-        // 1. Show skeletons immediately
         box.innerHTML='';
-        list.forEach(()=>{ const sk=document.createElement('div'); sk.className='card-skeleton'; box.appendChild(sk); });
 
-        // ⚡ SPEED: Replace skeleton only when image actually loads (not fixed timeout)
-        let loaded=0;
         const total=list.length;
         if(!total){ box.innerHTML='<div class="no-results"><svg class="ic" style="width:3rem;height:3rem"><use href="#i-search"/></svg><p>لا توجد نتائج — جرّب بحثاً آخر</p></div>'; return; }
 
-        // Preload images, then render all cards
-        const imgs=list.map(p=>{
-            const img=new Image();
-            img.src=p.image;
-            return new Promise(res=>{ img.onload=img.onerror=res; });
+        // ⚡ FIX: Render cards IMMEDIATELY — no preloading wait
+        // Skeletons show via CSS background until each img fires onload
+        list.forEach((p,i)=>{
+            const isNew=p.category==='جديد';
+            const card=document.createElement('div');
+            card.className='card'+(isNew?' accent-card':'');
+            card.style.animationDelay=(i*.05)+'s';
+
+            const msg=encodeURIComponent(`مرحباً جودي 👋\nأريد الاستفسار عن هذا التصميم:\n${p.image}`);
+            const waHref=`https://wa.me/${WHATSAPP}?text=${msg}`;
+
+            // ⚡ FIX: Use loading="eager" for first 4 visible, lazy for the rest
+            const loadAttr = i < 4 ? 'eager' : 'lazy';
+
+            // ⚡ FIX: Use smaller images (400x533 instead of 600x800) — 55% less data
+            const imgSrc = p.image.replace('/600/800', '/400/533');
+
+            card.innerHTML=`
+                <img src="${imgSrc}" loading="${loadAttr}" decoding="async" alt="${p.category}"
+                     style="opacity:0;transition:opacity .35s" onload="this.style.opacity=1">
+                <div class="card-overlay">
+                    <span class="card-cat">${p.category}</span>
+                    <div class="card-title">${p.name||'JUDY Exclusive'}</div>
+                    <a class="wa-btn" href="${waHref}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+                        <svg class="ic"><use href="#i-whatsapp"/></svg> اطلب الآن
+                    </a>
+                </div>
+                <div class="card-zoom-btn"><svg class="ic"><use href="#i-expand"/></svg></div>`;
+            card.addEventListener('click',()=>openZoom(imgSrc));
+            box.appendChild(card);
         });
-
-        // Render after at least first 4 images load OR 800ms — whichever comes first
-        let rendered=false;
-        const render=()=>{
-            if(rendered)return; rendered=true;
-            box.innerHTML='';
-            list.forEach((p,i)=>{
-                const isNew=p.category==='جديد';
-                const card=document.createElement('div');
-                card.className='card'+(isNew?' accent-card':'');
-                card.style.animationDelay=(i*.05)+'s';
-                const msg=encodeURIComponent(`مرحباً جودي 👋\nأريد الاستفسار عن هذا التصميم:\n${p.image}`);
-                const waHref=`https://wa.me/${WHATSAPP}?text=${msg}`;
-                // ⚡ decoding=async prevents jank
-                card.innerHTML=`
-                    <img src="${p.image}" loading="lazy" decoding="async" alt="${p.category}">
-                    <div class="card-overlay">
-                        <span class="card-cat">${p.category}</span>
-                        <div class="card-title">${p.name||'JUDY Exclusive'}</div>
-                        <a class="wa-btn" href="${waHref}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
-                            <svg class="ic"><use href="#i-whatsapp"/></svg> اطلب الآن
-                        </a>
-                    </div>
-                    <div class="card-zoom-btn"><svg class="ic"><use href="#i-expand"/></svg></div>`;
-                card.addEventListener('click',()=>openZoom(p.image));
-                box.appendChild(card);
-            });
-        };
-
-        // Fallback: render after 800ms max
-        const fallback=setTimeout(render, 800);
-        // Optimistic: render after first 4 images (or all if <4)
-        Promise.all(imgs.slice(0,Math.min(4,total))).then(()=>{ clearTimeout(fallback); render(); });
     }
 
     function openZoom(src){ document.getElementById('lbImg').src=src; document.getElementById('lightbox').classList.add('active'); }
