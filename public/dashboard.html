@@ -3,168 +3,425 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JODY Admin</title>
+    <title>JUDY Admin</title>
+
+    <!-- ⚡ preconnect فقط للـ Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- ⚡ display=swap يمنع تأخر الرندر -->
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         :root {
             --pink: #ff2d78; --pink-dim: rgba(255,45,120,.12);
             --green: #00d68f; --red: #ff4560;
             --ink: #0a0a0a; --surface: #141414; --surface2: #1c1c1c;
-            --border: rgba(255,255,255,.07); --text: #fff; --text-sub: #555; --text-mid: #888;
+            --border: rgba(255,255,255,.07); --text: #fff;
+            --text-sub: #555; --text-mid: #888;
         }
-        body { font-family: 'Cairo', sans-serif; background: var(--ink); color: var(--text); min-height: 100vh; padding: 28px 20px; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--ink); color: var(--text);
+            min-height: 100vh; padding: 28px 20px;
+            /* ⚡ إزالة will-change العام — كان يفتح GPU layers غير ضرورية */
+        }
+
         .container { max-width: 1200px; margin: 0 auto; }
-        .site-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
+
+        /* ══ HEADER ══ */
+        .site-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 30px; padding-bottom: 22px; border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; gap: 12px;
+        }
         .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 6px; direction: ltr; }
         .logo span { color: var(--pink); }
-        .badge { background: var(--pink-dim); color: var(--pink); font-size: .58rem; font-weight: 700; letter-spacing: 3px; padding: 3px 9px; border-radius: 2px; text-transform: uppercase; vertical-align: middle; margin-right: 8px; }
-        .store-link { color: var(--text-mid); text-decoration: none; font-size: .85rem; font-weight: 600; border: 1px solid var(--border); padding: 7px 16px; border-radius: 4px; transition: .2s; }
-        .store-link:hover { color: var(--text); border-color: rgba(255,255,255,.15); }
+        .badge {
+            background: var(--pink-dim); color: var(--pink);
+            font-size: .58rem; font-weight: 700; letter-spacing: 3px;
+            padding: 3px 9px; border-radius: 2px; text-transform: uppercase;
+            vertical-align: middle; margin-right: 8px;
+        }
+        .header-links { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .store-link {
+            color: var(--text-mid); text-decoration: none;
+            font-size: .85rem; font-weight: 600;
+            border: 1px solid var(--border); padding: 7px 16px; border-radius: 4px;
+            /* ⚡ transition محدد بدل all */
+            transition: color .2s, border-color .2s;
+            white-space: nowrap;
+        }
+        .store-link:hover { color: var(--text); border-color: rgba(255,255,255,.2); }
+        .store-link.pink { border-color: rgba(255,45,120,.3); color: var(--pink); }
+        .store-link.pink:hover { background: var(--pink); color: #fff; border-color: var(--pink); }
+
+        /* ══ STATS ══ */
         .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 26px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px 22px;
+            /* ⚡ لا will-change هنا */
+        }
         .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; line-height: 1; }
         .stat-label { font-size: .7rem; color: var(--text-sub); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 26px; margin-bottom: 22px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+
+        /* ══ CARD ══ */
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 26px; margin-bottom: 22px;
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; gap: 10px;
+        }
         .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; letter-spacing: 3px; }
+
+        /* ══ UPLOAD FORM ══ */
         .upload-form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .styled-select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 4px; font-family: 'Cairo', sans-serif; font-size: .88rem; outline: none; cursor: pointer; }
+        .styled-select {
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); padding: 10px 14px; border-radius: 4px;
+            font-family: 'Cairo', sans-serif; font-size: .88rem;
+            outline: none; cursor: pointer;
+            transition: border-color .2s;
+        }
         .styled-select:focus { border-color: var(--pink); }
-        .file-label { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--surface2); border: 1px dashed rgba(255,45,120,.3); border-radius: 4px; color: var(--text-mid); font-size: .85rem; font-weight: 600; cursor: pointer; transition: .2s; }
+        .file-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; background: var(--surface2);
+            border: 1px dashed rgba(255,45,120,.3); border-radius: 4px;
+            color: var(--text-mid); font-size: .85rem; font-weight: 600;
+            cursor: pointer; transition: border-color .2s, color .2s;
+        }
         .file-label:hover { border-color: var(--pink); color: var(--pink); }
         .file-label input[type=file] { display: none; }
         .file-count { font-size: .78rem; color: var(--text-mid); }
-        .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border-radius: 4px; border: none; font-family: 'Cairo', sans-serif; font-size: .88rem; font-weight: 700; cursor: pointer; transition: .25s; }
+
+        /* ══ BUTTONS ══ */
+        .btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 10px 22px; border-radius: 4px; border: none;
+            font-family: 'Cairo', sans-serif; font-size: .88rem; font-weight: 700;
+            cursor: pointer; transition: box-shadow .2s, background .2s;
+        }
         .btn-pink { background: var(--pink); color: #fff; }
-        .btn-pink:hover { box-shadow: 0 0 18px rgba(255,45,120,.5); }
+        .btn-pink:hover { box-shadow: 0 0 18px rgba(255,45,120,.45); }
         .btn-danger { background: rgba(255,69,96,.1); color: var(--red); border: 1px solid rgba(255,69,96,.2); }
         .btn-danger:hover { background: var(--red); color: #fff; }
+
+        /* ══ FILTER BAR ══ */
         .filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
-        .filter-pill { background: transparent; border: 1px solid var(--border); color: var(--text-mid); padding: 5px 15px; border-radius: 2px; font-family: 'Cairo', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: .2s; }
+        .filter-pill {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-mid); padding: 5px 15px; border-radius: 2px;
+            font-family: 'Cairo', sans-serif; font-size: .78rem; font-weight: 700;
+            cursor: pointer; transition: color .2s, background .2s, border-color .2s;
+        }
         .filter-pill:hover { color: var(--text); }
         .filter-pill.active { background: var(--pink); border-color: var(--pink); color: #fff; }
-        #list { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap: 16px; }
-        .product-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: .3s; }
-        .product-item:hover { border-color: rgba(255,45,120,.3); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
-        .product-item img { width: 100%; height: 210px; object-fit: cover; display: block; transition: transform .4s; }
+
+        /* ══ PRODUCT GRID ══ */
+        #list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px,1fr));
+            gap: 16px;
+            /* ⚡ contain يحسن الـ layout performance */
+            contain: layout;
+        }
+        .product-item {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; overflow: hidden;
+            transition: border-color .3s, transform .3s, box-shadow .3s;
+        }
+        .product-item:hover {
+            border-color: rgba(255,45,120,.3); transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+        }
+        /* ⚡ will-change على hover فقط وليس دائماً */
+        .product-item:hover img { will-change: transform; }
+        .product-item:not(:hover) img { will-change: auto; }
+
+        .product-item img {
+            width: 100%; height: 210px; object-fit: cover; display: block;
+            transition: transform .4s;
+            /* ⚡ تحميل lazy بالـ CSS للصور خارج الشاشة */
+        }
         .product-item:hover img { transform: scale(1.05); }
         .prod-info { padding: 10px; }
         .prod-cat { font-size: .62rem; color: var(--pink); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
-        .del-btn { background: rgba(255,69,96,.08); border: 1px solid rgba(255,69,96,.2); color: var(--red); width: 100%; padding: 8px; border-radius: 4px; font-family: 'Cairo', sans-serif; font-size: .78rem; font-weight: 700; cursor: pointer; transition: .2s; }
+        .del-btn {
+            background: rgba(255,69,96,.08); border: 1px solid rgba(255,69,96,.2);
+            color: var(--red); width: 100%; padding: 8px; border-radius: 4px;
+            font-family: 'Cairo', sans-serif; font-size: .78rem; font-weight: 700;
+            cursor: pointer; transition: background .2s, color .2s;
+        }
         .del-btn:hover { background: var(--red); color: #fff; }
-        .empty { text-align: center; padding: 50px; color: var(--text-sub); font-size: .88rem; letter-spacing: 2px; }
-        @media(max-width:600px) { .stats-row { grid-template-columns: repeat(2,1fr); } #list { grid-template-columns: repeat(2,1fr); } }
+
+        .empty {
+            text-align: center; padding: 50px; color: var(--text-sub);
+            font-size: .88rem; letter-spacing: 2px;
+            grid-column: 1 / -1;
+        }
+
+        /* ══ QUICK NAV LINKS ══ */
+        .quick-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px,1fr));
+            gap: 10px; margin-bottom: 22px;
+        }
+        .quick-link {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 6px; padding: 16px 10px;
+            background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text-mid); text-decoration: none; font-size: .78rem; font-weight: 700;
+            letter-spacing: 1px; transition: border-color .2s, color .2s, background .2s;
+            text-align: center;
+        }
+        .quick-link:hover { border-color: rgba(255,45,120,.4); color: var(--pink); background: var(--pink-dim); }
+        .quick-link.active-cat { border-color: var(--pink); color: var(--pink); background: var(--pink-dim); }
+        .quick-link-icon { font-size: 1.3rem; }
+        .quick-link-count { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--text); letter-spacing: 1px; }
+
+        /* ══ TOAST ══ */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text); padding: 12px 24px; border-radius: 6px;
+            font-size: .85rem; font-weight: 600; letter-spacing: 1px;
+            transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+            opacity: 0; z-index: 9999; white-space: nowrap;
+            box-shadow: 0 8px 32px rgba(0,0,0,.5);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { border-color: rgba(0,214,143,.3); color: var(--green); }
+        .toast.error { border-color: rgba(255,69,96,.3); color: var(--red); }
+
+        @media(max-width:600px) {
+            .stats-row { grid-template-columns: repeat(2,1fr); }
+            #list { grid-template-columns: repeat(2,1fr); }
+            .quick-nav { grid-template-columns: repeat(3,1fr); }
+        }
     </style>
 </head>
 <body>
 <div class="container">
 
+    <!-- HEADER -->
     <div class="site-header">
-        <div class="logo" dir="ltr"><span>J</span>ODY <span class="badge">Admin</span></div>
-        <a href="/" class="store-link">🏪 عرض المتجر</a>
+        <div class="logo" dir="ltr"><span>J</span>UDY <span class="badge">Admin</span></div>
+        <div class="header-links">
+            <a href="index.html" class="store-link">🏪 عرض المتجر</a>
+            <a href="index.html#gallery" class="store-link pink">✦ الكوليكشن</a>
+        </div>
     </div>
 
+    <!-- STATS -->
     <div class="stats-row">
         <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">إجمالي المنتجات</div></div>
         <div class="stat-card"><div class="stat-value" id="statNew">0</div><div class="stat-label">منتجات جديدة</div></div>
         <div class="stat-card"><div class="stat-value" id="statCats">0</div><div class="stat-label">أقسام نشطة</div></div>
     </div>
 
+    <!-- QUICK NAV بالأقسام -->
+    <div class="card">
+        <div class="card-header"><div class="card-title">الأقسام — انقر للفلترة</div></div>
+        <div class="quick-nav" id="quickNav">
+            <!-- تتولد تلقائياً من JS -->
+        </div>
+    </div>
+
+    <!-- UPLOAD FORM -->
     <div class="card">
         <div class="card-header"><div class="card-title">رفع منتجات جديدة</div></div>
         <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-form">
-            <select name="category" class="styled-select">
+            <select name="category" class="styled-select" id="uploadCat">
                 <option value="جديد">جديد ✨</option>
                 <option value="فساتين">فساتين</option>
                 <option value="بلوزات">بلوزات</option>
                 <option value="بنطلون">بنطلون</option>
                 <option value="جيبات">جيبات</option>
+                <option value="سوت">سوت</option>
                 <option value="أخرى">أخرى</option>
             </select>
             <label class="file-label">
                 📎 اختر الصور
-                <input type="file" name="images" multiple required onchange="document.getElementById('fc').textContent = this.files.length > 0 ? this.files.length + ' صور مختارة' : ''">
+                <input type="file" name="images" multiple required
+                    onchange="document.getElementById('fc').textContent = this.files.length > 0 ? this.files.length + ' صورة مختارة' : ''">
             </label>
             <span class="file-count" id="fc"></span>
             <button type="submit" class="btn btn-pink">⬆ رفع الآن</button>
         </form>
     </div>
 
+    <!-- PRODUCT LIST -->
     <div class="card">
         <div class="card-header">
             <div class="card-title">المنتجات المعروضة</div>
             <button id="delAllBtn" class="btn btn-danger" onclick="deleteAll()" style="display:none">🗑 حذف الكل</button>
         </div>
-        <div class="filter-bar">
+        <div class="filter-bar" id="filterBar">
             <button class="filter-pill active" onclick="filterBy('الكل',this)">الكل</button>
             <button class="filter-pill" onclick="filterBy('جديد',this)">جديد ✨</button>
             <button class="filter-pill" onclick="filterBy('فساتين',this)">فساتين</button>
             <button class="filter-pill" onclick="filterBy('بلوزات',this)">بلوزات</button>
             <button class="filter-pill" onclick="filterBy('بنطلون',this)">بنطلون</button>
             <button class="filter-pill" onclick="filterBy('جيبات',this)">جيبات</button>
+            <button class="filter-pill" onclick="filterBy('سوت',this)">سوت</button>
+            <button class="filter-pill" onclick="filterBy('أخرى',this)">أخرى</button>
         </div>
         <div id="list"></div>
     </div>
 
 </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
+    // ══ State ══
     let products = [];
     let currentFilter = 'الكل';
 
+    // ⚡ الأقسام مع الإيموجي — مركزي بدل تكرار
+    const CATS = [
+        { key:'الكل',   label:'الكل',      icon:'🛍️' },
+        { key:'جديد',   label:'جديد',      icon:'✨' },
+        { key:'فساتين', label:'فساتين',    icon:'👗' },
+        { key:'بلوزات', label:'بلوزات',    icon:'👚' },
+        { key:'بنطلون', label:'بنطلونات',  icon:'👖' },
+        { key:'جيبات',  label:'جيبات',     icon:'🧤' },
+        { key:'سوت',    label:'سوت',       icon:'🧥' },
+        { key:'أخرى',   label:'أخرى',      icon:'📦' },
+    ];
+
+    // ══ Toast ══
+    function showToast(msg, type='') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show ' + type;
+        setTimeout(() => t.className = 'toast', 2800);
+    }
+
+    // ══ Load ══
     function load() {
         fetch('/api/products').then(r => r.json()).then(data => {
             products = data;
-            document.getElementById('statTotal').textContent = data.length;
-            document.getElementById('statNew').textContent = data.filter(p => p.category === 'جديد').length;
-            document.getElementById('statCats').textContent = new Set(data.map(p => p.category)).size;
-            document.getElementById('delAllBtn').style.display = data.length > 0 ? 'flex' : 'none';
+            updateStats();
+            renderQuickNav();
+            renderList();
+        }).catch(() => {
+            // Demo data لما مفيش API
+            products = [];
+            updateStats();
+            renderQuickNav();
             renderList();
         });
     }
 
+    function updateStats() {
+        document.getElementById('statTotal').textContent = products.length;
+        document.getElementById('statNew').textContent   = products.filter(p => p.category === 'جديد').length;
+        document.getElementById('statCats').textContent  = new Set(products.map(p => p.category)).size;
+        document.getElementById('delAllBtn').style.display = products.length > 0 ? 'flex' : 'none';
+    }
+
+    // ══ Quick Nav ══
+    function renderQuickNav() {
+        const nav = document.getElementById('quickNav');
+        // ⚡ DocumentFragment يمنع reflow متكرر
+        const frag = document.createDocumentFragment();
+
+        CATS.forEach(c => {
+            const count = c.key === 'الكل'
+                ? products.length
+                : products.filter(p => p.category === c.key).length;
+
+            const a = document.createElement('a');
+            a.href = '#';
+            a.className = 'quick-link' + (currentFilter === c.key ? ' active-cat' : '');
+            a.innerHTML = `
+                <span class="quick-link-icon">${c.icon}</span>
+                <span>${c.label}</span>
+                <span class="quick-link-count">${count}</span>`;
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                filterBy(c.key, document.querySelector(`.filter-pill[data-cat="${c.key}"]`) || document.querySelector('.filter-pill'));
+                // sync quick nav active state
+                document.querySelectorAll('.quick-link').forEach(el => el.classList.remove('active-cat'));
+                a.classList.add('active-cat');
+            });
+            frag.appendChild(a);
+        });
+
+        nav.innerHTML = '';
+        nav.appendChild(frag);
+    }
+
+    // ══ Render List ══
     function renderList() {
         const container = document.getElementById('list');
-        container.innerHTML = '';
-        const filtered = currentFilter === 'الكل' ? products : products.filter(p => p.category === currentFilter);
+        const filtered = currentFilter === 'الكل'
+            ? products
+            : products.filter(p => p.category === currentFilter);
+
         if (!filtered.length) {
             container.innerHTML = '<div class="empty">لا توجد منتجات في هذا القسم</div>';
             return;
         }
+
+        // ⚡ DocumentFragment — insert جملة واحدة
+        const frag = document.createDocumentFragment();
         filtered.slice().reverse().forEach(p => {
-            container.innerHTML += `
-                <div class="product-item">
-                    <img src="${p.image}" onerror="this.src='https://placehold.co/300x400/1c1c1c/333?text=404'">
-                    <div class="prod-info">
-                        <div class="prod-cat">${p.category}</div>
-                        <button class="del-btn" onclick="deleteSingle('${p.id}')">🗑 حذف</button>
-                    </div>
+            const div = document.createElement('div');
+            div.className = 'product-item';
+            div.innerHTML = `
+                <img src="${p.image}" loading="lazy" decoding="async"
+                     onerror="this.src='https://placehold.co/300x400/1c1c1c/333?text=404'">
+                <div class="prod-info">
+                    <div class="prod-cat">${p.category}</div>
+                    <button class="del-btn" onclick="deleteSingle('${p.id}')">🗑 حذف</button>
                 </div>`;
+            frag.appendChild(div);
         });
+
+        container.innerHTML = '';
+        container.appendChild(frag);
     }
 
+    // ══ Filter ══
     function filterBy(cat, btn) {
         currentFilter = cat;
         document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        if(btn) btn.classList.add('active');
+        // sync quick nav
+        document.querySelectorAll('.quick-link').forEach((el, i) => {
+            el.classList.toggle('active-cat', CATS[i]?.key === cat);
+        });
         renderList();
     }
 
+    // ══ Delete ══
     function deleteSingle(id) {
-        if(confirm('حذف؟')) fetch('/api/products/'+id, {method:'DELETE'}).then(() => load());
+        if(!confirm('حذف هذا المنتج؟')) return;
+        fetch('/api/products/' + id, { method: 'DELETE' })
+            .then(() => { showToast('تم الحذف ✓', 'success'); load(); })
+            .catch(() => showToast('فشل الحذف', 'error'));
     }
 
     async function deleteAll() {
-        if(confirm('سيتم حذف كل شيء! هل أنت متأكد؟')) {
-            for(let p of products) {
-                await fetch('/api/products/'+p.id, {method:'DELETE'});
-            }
-            load();
+        if(!confirm('سيتم حذف كل شيء! هل أنت متأكد؟')) return;
+        for(let p of products) {
+            await fetch('/api/products/' + p.id, { method: 'DELETE' });
         }
+        showToast('تم حذف الكل ✓', 'success');
+        load();
     }
 
+    // ══ Init ══
     load();
 </script>
 </body>
